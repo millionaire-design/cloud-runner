@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Submissions</title>
+    <style>
+        :root {
+            /* REPLACE THE URL BELOW TO CHANGE YOUR BACKGROUND PHOTO */
+            --bg-image: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2564&auto=format&fit=crop'); 
+            
+            --neon-cyan: #00f3ff;
+            --neon-magenta: #ff00ff;
+            --neon-purple: #bc13fe;
+            --glass-bg: rgba(15, 15, 20, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-image: var(--bg-image);
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .dashboard-header {
+            max-width: 1200px;
+            margin: 0 auto 30px auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            padding: 20px 30px;
+            border-radius: 15px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 0 15px rgba(188, 19, 254, 0.2);
+            border-left: 4px solid var(--neon-purple);
+        }
+
+        .dashboard-header h1 {
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: linear-gradient(90deg, #fff, var(--neon-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .stat-badge {
+            background: rgba(0,0,0,0.5);
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            font-size: 0.9rem;
+        }
+
+        .stat-badge span {
+            color: var(--neon-cyan);
+            font-weight: bold;
+            margin-left: 5px;
+        }
+
+        .table-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border-radius: 15px;
+            border: 1px solid var(--glass-border);
+            overflow-x: auto;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--neon-cyan);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        td {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.95rem;
+            vertical-align: middle;
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .view-docs-btn {
+            background: transparent;
+            border: 1px solid var(--neon-purple);
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.8rem;
+        }
+
+        .view-docs-btn:hover {
+            background: var(--neon-purple);
+            box-shadow: 0 0 10px rgba(188, 19, 254, 0.4);
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 10px;
+        }
+
+        .approve-btn, .reject-btn {
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #fff;
+            transition: all 0.3s;
+        }
+
+        .approve-btn {
+            background: linear-gradient(90deg, #00b09b, #96c93d);
+        }
+
+        .approve-btn:hover {
+            box-shadow: 0 0 15px rgba(150, 201, 61, 0.5);
+        }
+
+        .reject-btn {
+            background: linear-gradient(90deg, #ff416c, #ff4b2b);
+        }
+
+        .reject-btn:hover {
+            box-shadow: 0 0 15px rgba(255, 65, 108, 0.5);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-pending {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+            border: 1px solid #ffc107;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-header">
+        <h1>Admin Control Panel</h1>
+        <div class="stats">
+            <div class="stat-badge">Pending Reviews: <span>1</span></div>
+            <div class="stat-badge">Total Approved: <span>142</span></div>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Name</th>
+                    <th>Contact Info</th>
+                    <th>Birthday</th>
+                    <th>Documents</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="entriesBody">
+                <!-- Example Mock Data Row -->
+                <tr>
+                    <td>Aug 18, 2026</td>
+                    <td>Jane Doe</td>
+                    <td>
+                        jane@example.com<br>
+                        <span style="color: #aaa; font-size: 0.8rem;">(555) 123-4567</span>
+                    </td>
+                    <td>10/15/1990</td>
+                    <td>
+                        <button class="view-docs-btn">View 3 Files</button>
+                    </td>
+                    <td>
+                        <span class="status-badge status-pending">Pending</span>
+                    </td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="approve-btn" onclick="handleAction('approve')">Approve</button>
+                            <button class="reject-btn" onclick="handleAction('reject')">Reject</button>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        function handleAction(action) {
+            if(action === 'approve') {
+                alert('Entry Approved! (Backend will update status)');
+            } else {
+                alert('Entry Rejected! (Backend will update status)');
+            }
+        }
+        
+        // Push notification logic will be connected here later via Webhooks/Service Workers
+    </script>
+</body>
+</html>
