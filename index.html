@@ -26,14 +26,14 @@
         body {
             background-image: var(--bg-image);
             background-size: cover;
-            background-position: center;
+            background-position: top center; /* Keeps the top of your image anchored so the title isn't cut off */
             background-attachment: fixed;
             color: #ffffff;
             min-height: 100vh;
             display: flex;
             justify-content: center;
-            align-items: center;
-            padding: 40px 20px;
+            align-items: flex-start; /* Aligns items to the top so we can push them down with padding */
+            padding: 150px 20px 40px 20px; /* 150px top padding leaves room for the app name in the image */
         }
 
         .glass-container {
@@ -220,7 +220,7 @@
 <body>
 
     <div class="glass-container">
-        <h2>Secure Verification Form</h2>
+        <h2></h2>
         <form id="verificationForm">
             
             <div class="form-group">
