@@ -30,7 +30,6 @@
             background-attachment: fixed;
             color: #ffffff;
             min-height: 100vh;
-            /* Applied the same 240px top padding to clear the logo */
             padding: 240px 20px 40px 20px; 
         }
 
@@ -124,6 +123,7 @@
             cursor: pointer;
             transition: all 0.3s;
             font-size: 0.8rem;
+            margin-right: 5px;
         }
 
         .view-docs-btn:hover {
@@ -177,6 +177,18 @@
             border: 1px solid #ffc107;
         }
 
+        .status-approved {
+            background: rgba(150, 201, 61, 0.2);
+            color: #96c93d;
+            border: 1px solid #96c93d;
+        }
+
+        .status-rejected {
+            background: rgba(255, 65, 108, 0.2);
+            color: #ff416c;
+            border: 1px solid #ff416c;
+        }
+
     </style>
 </head>
 <body>
@@ -184,8 +196,8 @@
     <div class="dashboard-header">
         <h1>Admin Control Panel</h1>
         <div class="stats">
-            <div class="stat-badge">Pending Reviews: <span>1</span></div>
-            <div class="stat-badge">Total Approved: <span>142</span></div>
+            <div class="stat-badge">Pending Reviews: <span id="pendingCount">0</span></div>
+            <div class="stat-badge">Total Approved: <span id="approvedCount">0</span></div>
         </div>
     </div>
 
@@ -203,42 +215,111 @@
                 </tr>
             </thead>
             <tbody id="entriesBody">
-                <!-- Example Mock Data Row -->
-                <tr>
-                    <td>Aug 18, 2026</td>
-                    <td>Jane Doe</td>
-                    <td>
-                        jane@example.com<br>
-                        <span style="color: #aaa; font-size: 0.8rem;">(555) 123-4567</span>
-                    </td>
-                    <td>10/15/1990</td>
-                    <td>
-                        <button class="view-docs-btn">View 3 Files</button>
-                    </td>
-                    <td>
-                        <span class="status-badge status-pending">Pending</span>
-                    </td>
-                    <td>
-                        <div class="action-btns">
-                            <button class="approve-btn" onclick="handleAction('approve')">Approve</button>
-                            <button class="reject-btn" onclick="handleAction('reject')">Reject</button>
-                        </div>
-                    </td>
-                </tr>
+                <!-- Data will be dynamically injected here via JS -->
             </tbody>
         </table>
     </div>
 
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        function handleAction(action) {
-            if(action === 'approve') {
-                alert('Entry Approved! (Backend will update status)');
+        const SUPABASE_URL = 'https://isyvdecnquthfmyyuljf.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlzeXZkZWNucXV0aGZteXl1bGpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyMTgwMzIsImV4cCI6MjA5MTc5NDAzMn0.xSS3PC-yKKqzcm8sKbuAc1Fl00ndQBy_WuoxJirTtoI';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Fetch submissions from Supabase and render the table
+        async function loadSubmissions() {
+            const { data, error } = await supabase
+                .from('cloud_runner_submissions')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error("Error fetching data: ", error);
+                return;
+            }
+
+            const tbody = document.getElementById('entriesBody');
+            tbody.innerHTML = ''; // Clear out the loading or old rows
+
+            let pendingCount = 0;
+            let approvedCount = 0;
+
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No submissions found.</td></tr>';
+                return;
+            }
+
+            data.forEach(entry => {
+                // Tally stats
+                if (entry.status === 'pending') pendingCount++;
+                if (entry.status === 'approved') approvedCount++;
+
+                // Format the Date
+                const dateObj = new Date(entry.created_at);
+                const formattedDate = dateObj.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+
+                // Define status class/text based on db state
+                let statusClass = 'status-pending';
+                let statusText = 'Pending';
+                if (entry.status === 'approved') {
+                    statusClass = 'status-approved';
+                    statusText = 'Approved';
+                } else if (entry.status === 'rejected') {
+                    statusClass = 'status-rejected';
+                    statusText = 'Rejected';
+                }
+
+                // Create the table row dynamically
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${formattedDate}</td>
+                    <td>${entry.full_name}</td>
+                    <td>
+                        ${entry.email}<br>
+                        <span style="color: #aaa; font-size: 0.8rem;">${entry.phone}</span>
+                    </td>
+                    <td>${entry.birthday}</td>
+                    <td>
+                        <button class="view-docs-btn" onclick="window.open('${entry.id_front_url}', '_blank')">ID Front</button><br>
+                        <button class="view-docs-btn" style="margin-top:5px;" onclick="window.open('${entry.id_back_url}', '_blank')">ID Back</button><br>
+                        <button class="view-docs-btn" style="margin-top:5px;" onclick="window.open('${entry.headshot_url}', '_blank')">Headshot</button>
+                    </td>
+                    <td>
+                        <span class="status-badge ${statusClass}">${statusText}</span>
+                    </td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="approve-btn" onclick="updateStatus('${entry.id}', 'approved')">Approve</button>
+                            <button class="reject-btn" onclick="updateStatus('${entry.id}', 'rejected')">Reject</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Update top stats
+            document.getElementById('pendingCount').textContent = pendingCount;
+            document.getElementById('approvedCount').textContent = approvedCount;
+        }
+
+        // Update entry status in Supabase
+        async function updateStatus(id, newStatus) {
+            const { error } = await supabase
+                .from('cloud_runner_submissions')
+                .update({ status: newStatus })
+                .eq('id', id);
+
+            if (error) {
+                alert('Error updating status: ' + error.message);
+                console.error(error);
             } else {
-                alert('Entry Rejected! (Backend will update status)');
+                loadSubmissions(); // Refresh table to reflect changes
             }
         }
-        
-        // Push notification logic will be connected here later via Webhooks/Service Workers
+
+        // Load entries when page loads
+        document.addEventListener('DOMContentLoaded', loadSubmissions);
     </script>
 </body>
 </html>
