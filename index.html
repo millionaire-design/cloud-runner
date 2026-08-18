@@ -33,7 +33,6 @@
             display: flex;
             justify-content: center;
             align-items: flex-start;
-            /* Adjusted top padding to 240px to sit nicely under the Cloud Runner logo */
             padding: 240px 20px 40px 20px; 
         }
 
@@ -205,9 +204,15 @@
             margin-top: 10px;
         }
 
-        button.submit-btn:hover {
+        button.submit-btn:hover:not(:disabled) {
             box-shadow: 0 0 20px rgba(255, 0, 255, 0.4);
             transform: translateY(-2px);
+        }
+        
+        button.submit-btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+            color: #aaa;
         }
 
         .file-name-display {
@@ -289,13 +294,18 @@
                 <label for="ageConsent">By checking the box I agree that I am of age.</label>
             </div>
 
-            <button type="submit" class="submit-btn">Submit Verification</button>
+            <button type="submit" class="submit-btn" id="submitBtn">Submit Verification</button>
 
         </form>
     </div>
 
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        // Simple script to show the selected file name in the upload boxes
+        const SUPABASE_URL = 'https://isyvdecnquthfmyyuljf.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlzeXZkZWNucXV0aGZteXl1bGpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyMTgwMzIsImV4cCI6MjA5MTc5NDAzMn0.xSS3PC-yKKqzcm8sKbuAc1Fl00ndQBy_WuoxJirTtoI';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
         function updateFileName(input, displayId) {
             const displayElement = document.getElementById(displayId);
             if (input.files && input.files[0]) {
@@ -305,11 +315,76 @@
             }
         }
 
-        // Prevent default submission for now until backend is wired up
-        document.getElementById('verificationForm').addEventListener('submit', function(e) {
+        async function uploadFileToSupabase(file, bucketName, filePath) {
+            const { data, error } = await supabase.storage
+                .from(bucketName)
+                .upload(filePath, file, { cacheControl: '3600', upsert: false });
+            
+            if (error) throw error;
+            
+            const { data: publicUrlData } = supabase.storage
+                .from(bucketName)
+                .getPublicUrl(filePath);
+                
+            return publicUrlData.publicUrl;
+        }
+
+        document.getElementById('verificationForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            alert('Frontend validation complete. Ready to send to backend!');
-            // Backend logic will go here later
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.textContent = 'Uploading & Saving...';
+            submitBtn.disabled = true;
+
+            try {
+                // Get the files from the DOM
+                const idFrontFile = document.getElementById('idFront').files[0];
+                const idBackFile = document.getElementById('idBack').files[0];
+                const headshotFile = document.getElementById('headshot').files[0];
+
+                // Generate unique paths for the files to prevent overriding
+                const timestamp = Date.now();
+                const frontPath = `front_${timestamp}_${idFrontFile.name}`;
+                const backPath = `back_${timestamp}_${idBackFile.name}`;
+                const headshotPath = `headshot_${timestamp}_${headshotFile.name}`;
+
+                // Upload files to Supabase Storage concurrently
+                const [idFrontUrl, idBackUrl, headshotUrl] = await Promise.all([
+                    uploadFileToSupabase(idFrontFile, 'cloud_runner_uploads', frontPath),
+                    uploadFileToSupabase(idBackFile, 'cloud_runner_uploads', backPath),
+                    uploadFileToSupabase(headshotFile, 'cloud_runner_uploads', headshotPath)
+                ]);
+
+                // Insert the record into the database table
+                const { data, error } = await supabase
+                    .from('cloud_runner_submissions')
+                    .insert([{
+                        full_name: document.getElementById('fullName').value,
+                        email: document.getElementById('email').value,
+                        phone: document.getElementById('phone').value,
+                        address: document.getElementById('address').value,
+                        birthday: document.getElementById('birthday').value,
+                        id_front_url: idFrontUrl,
+                        id_back_url: idBackUrl,
+                        headshot_url: headshotUrl,
+                        contact_consent: document.getElementById('contactConsent').checked,
+                        age_consent: document.getElementById('ageConsent').checked,
+                        status: 'pending'
+                    }]);
+
+                if (error) throw error;
+
+                alert('Verification submitted successfully!');
+                document.getElementById('verificationForm').reset();
+                document.querySelectorAll('.file-name-display').forEach(el => el.textContent = '');
+
+            } catch (error) {
+                console.error("Submission Error:", error);
+                alert('There was an error submitting your form: ' + error.message);
+            } finally {
+                submitBtn.textContent = 'Submit Verification';
+                submitBtn.disabled = false;
+            }
         });
     </script>
 </body>
